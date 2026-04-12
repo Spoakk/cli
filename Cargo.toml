@@ -1,0 +1,22 @@
+[package]
+name = "spoak-cli"
+version = "0.1.0"
+edition = "2021"
+description = "Spoak CLI — Minecraft server tools in your terminal"
+license = "MIT"
+
+[[bin]]
+name = "spoak"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive", "color"] }
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", features = ["json", "stream"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+crossterm = "0.27"
+sha2 = "0.10"
+hex = "0.4"
+futures-util = "0.3"
