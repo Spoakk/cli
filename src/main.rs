@@ -36,6 +36,15 @@ enum Commands {
         #[command(subcommand)]
         sub: CoordsCommands,
     },
+    Structures {
+        seed: String,
+        #[arg(short, long, default_value_t = 0)]
+        x: i32,
+        #[arg(short, long, default_value_t = 0)]
+        z: i32,
+        #[arg(short, long, default_value_t = 1024)]
+        radius: i32,
+    },
     Install,
 }
 
@@ -109,6 +118,7 @@ async fn main() {
                     JarsCommands::Paper { version, all } => commands::jars_paper(&version, all).await,
                     JarsCommands::Leaf { version, all } => commands::jars_leaf(&version, all).await,
                 },
+                Commands::Structures { seed, x, z, radius } => commands::seedmap_structures(&seed, x, z, radius).await,
                 _ => unreachable!(),
             };
 
@@ -171,6 +181,14 @@ async fn run_interactive() {
                     ["jars", "paper", ver, "--all"] => commands::jars_paper(ver, true).await,
                     ["jars", "leaf", ver] => commands::jars_leaf(ver, false).await,
                     ["jars", "leaf", ver, "--all"] => commands::jars_leaf(ver, true).await,
+                    ["structures", seed] => commands::seedmap_structures(seed, 0, 0, 1024).await,
+                    ["structures", seed, x, z] => {
+                        if let (Ok(x), Ok(z)) = (x.parse(), z.parse()) {
+                            commands::seedmap_structures(seed, x, z, 1024).await
+                        } else {
+                            Err(anyhow::anyhow!("Invalid coordinates"))
+                        }
+                    }
                     _ => {
                         eprintln!("Unknown command. Type {} for help.", color::spoak("help"));
                         continue;
@@ -207,6 +225,7 @@ fn print_help() {
     println!("  {}  leaf  <ver>       Latest Leaf build", color::spoak("jars"));
     println!("  {}  nether <x> <z>    Overworld → Nether coords", color::spoak("coords"));
     println!("  {}  overworld <x> <z> Nether → Overworld coords", color::spoak("coords"));
+    println!("  {}  <seed> [x] [z]    Find structures in seed", color::spoak("structures"));
     println!("  {}                    Add spoak to PATH", color::spoak("install"));
     println!("  {}                    Quit", color::spoak("exit"));
 }

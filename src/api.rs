@@ -81,3 +81,15 @@ fn urlencoded(s: &str) -> String {
     s.replace(' ', "%20").replace(':', "%3A")
 }
 
+#[derive(Deserialize)]
+pub struct StructureMarker {
+    pub kind: String,
+    pub label: String,
+    pub x: i32,
+    pub z: i32,
+}
+
+pub async fn seedmap_structures(seed: &str, x: i32, z: i32, radius: i32) -> Result<Vec<StructureMarker>> {
+    let url = format!("{}/seedmap/structures?seed={}&x={}&z={}&radius={}", API_BASE, urlencoded(seed), x, z, radius);
+    Ok(client().get(&url).send().await?.json().await?)
+}

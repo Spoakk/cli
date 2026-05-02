@@ -171,3 +171,30 @@ pub fn coords_overworld(x: f64, z: f64) -> Result<()> {
         color::yellow(&format!("{:.1}", z * 8.0)));
     Ok(())
 }
+
+pub async fn seedmap_structures(seed: &str, x: i32, z: i32, radius: i32) -> Result<()> {
+    println!("{} {} ...", color::dim("Searching structures near"), color::spoak(&format!("{}, {}", x, z)));
+    let markers = api::seedmap_structures(seed, x, z, radius).await?;
+    
+    if markers.is_empty() {
+        println!("  {}", color::yellow("No structures found in that radius."));
+        return Ok(());
+    }
+
+    // Group by kind or just list them.
+    for m in markers.iter().take(20) {
+        let dist = (((m.x - x).pow(2) + (m.z - z).pow(2)) as f64).sqrt() as i32;
+        println!("  {} {} ({}, {}) — {} blocks away",
+            color::green("●"),
+            color::bold(&m.label),
+            color::spoak(&m.x.to_string()),
+            color::spoak(&m.z.to_string()),
+            color::dim(&dist.to_string()),
+        );
+    }
+
+    if markers.len() > 20 {
+        println!("  {} and {} more", color::dim("..."), markers.len() - 20);
+    }
+    Ok(())
+}

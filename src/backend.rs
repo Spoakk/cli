@@ -11,7 +11,7 @@ const GITHUB_API: &str = "https://api.github.com/repos/Spoakk/backend/releases/l
 const CLI_GITHUB_API: &str = "https://api.github.com/repos/Spoakk/cli/releases/latest";
 const ASSET_NAME: &str = "spoak-backend.exe";
 const USER_AGENT: &str = "spoak-cli/0.1.0";
-pub const API_BASE: &str = "http://localhost:4000/api";
+pub const API_BASE: &str = "http://localhost:4000/api/v2";
 const CLI_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn spoak_dir() -> PathBuf {
@@ -176,27 +176,22 @@ pub async fn ensure_and_start(client: &reqwest::Client) -> Result<Child> {
     let cache = read_version_cache();
 
     if let Ok(cli_release) = fetch_release_tag(client, CLI_GITHUB_API).await {
-        // Skip update check if tag is invalid or same as current
-        if cli_release.is_empty() || cli_release == "vrelease" {
-            // Invalid or placeholder tag, skip update
-        } else {
-            let latest = cli_release.trim_start_matches('v').to_string();
-            let current = CLI_VERSION.trim_start_matches('v');
-            if latest != current && !latest.is_empty() {
-                println!("{} CLI update available: v{} → v{}",
-                    color::yellow("↑"), current, color::spoak(&latest));
-                println!("  Run: {}",
-                    color::dim("iwr -useb https://github.com/Spoakk/cli/releases/latest/download/spoak.exe -OutFile spoak.exe"));
-                if let Ok(()) = self_update(client, &cli_release).await {
-                    println!("{} CLI updated to v{} — please restart.", color::green("✓"), color::spoak(&latest));
-                    std::process::exit(0);
-                }
+        let latest = cli_release.trim_start_matches('v').to_string();
+        let current = CLI_VERSION.trim_start_matches('v');
+        if latest != current {
+            println!("{} CLI update available: v{} → v{}",
+                color::yellow("↑"), current, color::spoak(&latest));
+            println!("  Run: {}",
+                color::dim("iwr -useb https://github.com/Spoakk/cli/releases/latest/download/spoak.exe -OutFile spoak.exe"));
+            if let Ok(()) = self_update(client, &cli_release).await {
+                println!("{} CLI updated to v{} — please restart.", color::green("✓"), color::spoak(&latest));
+                std::process::exit(0);
             }
-            write_version_cache(&VersionCache {
-                cli_latest_tag: cli_release,
-                ..read_version_cache()
-            });
         }
+        write_version_cache(&VersionCache {
+            cli_latest_tag: cli_release,
+            ..read_version_cache()
+        });
     }
 
     if !cache.cli_version.is_empty() && cache.cli_version != CLI_VERSION {
