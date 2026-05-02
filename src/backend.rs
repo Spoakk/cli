@@ -178,20 +178,30 @@ pub async fn ensure_and_start(client: &reqwest::Client) -> Result<Child> {
     if let Ok(cli_release) = fetch_release_tag(client, CLI_GITHUB_API).await {
         let latest = cli_release.trim_start_matches('v').to_string();
         let current = CLI_VERSION.trim_start_matches('v');
+        
         if latest != current {
-            println!("{} CLI update available: v{} → v{}",
-                color::yellow("↑"), current, color::spoak(&latest));
-            println!("  Run: {}",
-                color::dim("iwr -useb https://github.com/Spoakk/cli/releases/latest/download/spoak.exe -OutFile spoak.exe"));
-            if let Ok(()) = self_update(client, &cli_release).await {
-                println!("{} CLI updated to v{} — please restart.", color::green("✓"), color::spoak(&latest));
-                std::process::exit(0);
+            if cache.cli_latest_tag != cli_release {
+                println!("{} CLI update available: v{} → v{}",
+                    color::yellow("↑"), current, color::spoak(&latest));
+                println!("  Run: {}",
+                    color::dim("iwr -useb https://github.com/Spoakk/cli/releases/latest/download/spoak.exe -OutFile spoak.exe"));
+                
+                write_version_cache(&VersionCache {
+                    cli_latest_tag: cli_release.clone(),
+                    ..read_version_cache()
+                });
+
+                if let Ok(()) = self_update(client, &cli_release).await {
+                    println!("{} CLI updated to v{} — please restart.", color::green("✓"), color::spoak(&latest));
+                    std::process::exit(0);
+                }
             }
+        } else {
+            write_version_cache(&VersionCache {
+                cli_latest_tag: cli_release,
+                ..read_version_cache()
+            });
         }
-        write_version_cache(&VersionCache {
-            cli_latest_tag: cli_release,
-            ..read_version_cache()
-        });
     }
 
     if !cache.cli_version.is_empty() && cache.cli_version != CLI_VERSION {
