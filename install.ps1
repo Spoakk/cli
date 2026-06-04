@@ -9,19 +9,19 @@ $hasError = $false
 
 function Write-Step {
     param($msg)
-    Write-Host "  > " -NoNewline -ForegroundColor Magenta
+    Write-Host "  ❯ " -NoNewline -ForegroundColor Magenta
     Write-Host $msg -ForegroundColor White
 }
 
 function Write-Ok {
     param($msg)
-    Write-Host "  OK " -NoNewline -ForegroundColor Green
+    Write-Host "  ✓ " -NoNewline -ForegroundColor Green
     Write-Host $msg -ForegroundColor DarkGray
 }
 
 function Write-Err {
     param($msg)
-    Write-Host "  XX " -NoNewline -ForegroundColor Red
+    Write-Host "  ✗ " -NoNewline -ForegroundColor Red
     Write-Host $msg -ForegroundColor White
 }
 
@@ -38,9 +38,9 @@ function Wait-ForKey {
 }
 
 Write-Host ''
-Write-Host '  +--------------------------------------+' -ForegroundColor DarkMagenta
-Write-Host '  |          Spoak CLI Installer         |' -ForegroundColor Magenta
-Write-Host '  +--------------------------------------+' -ForegroundColor DarkMagenta
+Write-Host '  ╭──────────────────────────────────────╮' -ForegroundColor DarkMagenta
+Write-Host '  │          Spoak CLI Installer         │' -ForegroundColor Magenta
+Write-Host '  ╰──────────────────────────────────────╯' -ForegroundColor DarkMagenta
 Write-Host ''
 
 Write-Step 'Fetching latest release from GitHub...'
@@ -224,18 +224,18 @@ try {
 
 Write-Host ''
 if (-not $hasError) {
-    Write-Host '  +--------------------------------------+' -ForegroundColor DarkGreen
-    Write-Host '  |  OK Spoak CLI installed successfully |' -ForegroundColor Green
-    Write-Host '  +--------------------------------------+' -ForegroundColor DarkGreen
+    Write-Host '  ╭──────────────────────────────────────╮' -ForegroundColor DarkGreen
+    Write-Host '  │  ✓ Spoak CLI installed successfully  │' -ForegroundColor Green
+    Write-Host '  ╰──────────────────────────────────────╯' -ForegroundColor DarkGreen
     Write-Host ''
     Write-Host '  Next steps:' -ForegroundColor Magenta
     Write-Host '    1. Open a new terminal window' -ForegroundColor DarkGray
     Write-Host '    2. Run: spoak' -ForegroundColor DarkGray
     Write-Host ''
 } else {
-    Write-Host '  +--------------------------------------+' -ForegroundColor DarkRed
-    Write-Host '  |  XX Installation finished with errors|' -ForegroundColor Red
-    Write-Host '  +--------------------------------------+' -ForegroundColor DarkRed
+    Write-Host '  ╭──────────────────────────────────────╮' -ForegroundColor DarkRed
+    Write-Host '  │  ✗ Installation finished with errors │' -ForegroundColor Red
+    Write-Host '  ╰──────────────────────────────────────╯' -ForegroundColor DarkRed
     Write-Host ''
     Write-Host '  Please review the errors above and try again' -ForegroundColor DarkGray
     Write-Host ''
