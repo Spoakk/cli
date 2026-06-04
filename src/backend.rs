@@ -46,10 +46,16 @@ fn version_file_path() -> PathBuf {
 
 #[derive(Serialize, Deserialize, Default)]
 struct VersionCache {
+    #[serde(default)]
     backend_tag: String,
+    #[serde(default)]
     backend_sha256: String,
+    #[serde(default)]
     cli_version: String,
+    #[serde(default)]
     cli_latest_tag: String,
+    #[serde(default)]
+    last_check_time: Option<u64>,
 }
 
 fn read_version_cache() -> VersionCache {
@@ -196,68 +202,77 @@ async fn download_backend(_client: &reqwest::Client, info: &ReleaseInfo) -> Resu
     Ok(())
 }
 
-pub async fn ensure_and_start(client: &reqwest::Client) -> Result<Child> {
-    let cache = read_version_cache();
+pub async fn ensure_and_start(client: &reqwest::Client, force_check: bool) -> Result<Child> {
+    let mut cache = read_version_cache();
+    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
+    let should_check = force_check || cache.last_check_time.map_or(true, |t| now - t > 3600);
 
-    if let Ok(cli_release) = fetch_release_tag(client, CLI_GITHUB_API).await {
-        let latest = cli_release.trim_start_matches('v').to_string();
-        let current = CLI_VERSION.trim_start_matches('v');
-        
-        if latest != current {
-            if cache.cli_latest_tag != cli_release {
-                let title = color::gradient_text("Update Available", (255.,160.,50.), (255.,100.,140.));
-                let mut b = color::BentoBox::new(&title);
-                b.set_width(70);
-                b.add(&format!("CLI update: v{} {} v{}", current, color::dim("→"), color::green(&latest)));
-                b.empty_line();
-                b.add(&format!("Run the following command to update manually:"));
-                #[cfg(target_os = "windows")]
-                b.add(&color::dim("iwr -useb https://github.com/Spoakk/cli/releases/latest/download/spoak-cli-Windows.exe -OutFile spoak.exe").to_string());
-                #[cfg(not(target_os = "windows"))]
-                b.add(&color::dim("curl -Lo spoak https://github.com/Spoakk/cli/releases/latest/download/spoak-cli-Linux").to_string());
-                b.draw();
-                
-                write_version_cache(&VersionCache {
-                    cli_latest_tag: cli_release.clone(),
-                    ..read_version_cache()
-                });
+    if should_check {
+        if let Ok(cli_release) = fetch_release_tag(client, CLI_GITHUB_API).await {
+            let latest = cli_release.trim_start_matches('v').to_string();
+            let current = CLI_VERSION.trim_start_matches('v');
+            
+            if latest != current {
+                if cache.cli_latest_tag != cli_release {
+                    let title = color::gradient_text("Update Available", (255.,160.,50.), (255.,100.,140.));
+                    let mut b = color::BentoBox::new(&title);
+                    b.set_width(70);
+                    b.add(&format!("CLI update: v{} {} v{}", current, color::dim("→"), color::green(&latest)));
+                    b.empty_line();
+                    b.add(&format!("Run the following command to update manually:"));
+                    #[cfg(target_os = "windows")]
+                    b.add(&color::dim("iwr -useb https://github.com/Spoakk/cli/releases/latest/download/spoak-cli-Windows.exe -OutFile spoak.exe").to_string());
+                    #[cfg(not(target_os = "windows"))]
+                    b.add(&color::dim("curl -Lo spoak https://github.com/Spoakk/cli/releases/latest/download/spoak-cli-Linux").to_string());
+                    b.draw();
+                    
+                    cache.cli_latest_tag = cli_release.clone();
+                    write_version_cache(&cache);
 
-                if let Ok(()) = self_update(client, &cli_release).await {
-                    println!("\n  {} CLI updated to v{} — please restart.", color::green("✓"), color::green(&latest));
-                    std::process::exit(0);
+                    if let Ok(()) = self_update(client, &cli_release).await {
+                        println!("\n  {} CLI updated to v{} — please restart.", color::green("✓"), color::green(&latest));
+                        std::process::exit(0);
+                    }
                 }
+            } else {
+                cache.cli_latest_tag = cli_release;
             }
-        } else {
-            write_version_cache(&VersionCache {
-                cli_latest_tag: cli_release,
-                ..read_version_cache()
-            });
         }
-    }
 
-    if !cache.cli_version.is_empty() && cache.cli_version != CLI_VERSION {
-        let title = color::gradient_text("Update Complete", (80.,220.,160.), (111.,81.,218.));
-        let mut b = color::BentoBox::new(&title);
-        b.add(&format!("CLI updated: {} {} {}", color::dim(&cache.cli_version), color::dim("→"), color::green(CLI_VERSION)));
-        b.draw();
-    }
-
-    let info = fetch_latest_release(client).await
-        .context("Failed to check for backend updates (GitHub)")?;
-
-    let path = backend_path();
-    let needs_download = !path.exists()
-        || cache.backend_tag != info.tag
-        || cache.cli_version != CLI_VERSION;
-
-    if needs_download {
-        if path.exists() && cache.backend_tag != info.tag {
-            let title = color::gradient_text("Backend Update", (80.,220.,160.), (111.,81.,218.));
+        if !cache.cli_version.is_empty() && cache.cli_version != CLI_VERSION {
+            let title = color::gradient_text("Update Complete", (80.,220.,160.), (111.,81.,218.));
             let mut b = color::BentoBox::new(&title);
-            b.add(&format!("{} {} {}", color::dim(&cache.backend_tag), color::dim("→"), color::yellow(&info.tag)));
+            b.add(&format!("CLI updated: {} {} {}", color::dim(&cache.cli_version), color::dim("→"), color::green(CLI_VERSION)));
             b.draw();
+            
+            cache.cli_version = CLI_VERSION.to_string();
+            write_version_cache(&cache);
         }
-        download_backend(client, &info).await?;
+
+        if let Ok(info) = fetch_latest_release(client).await {
+            let path = backend_path();
+            let needs_download = !path.exists()
+                || cache.backend_tag != info.tag
+                || cache.cli_version != CLI_VERSION;
+
+            if needs_download {
+                if path.exists() && cache.backend_tag != info.tag {
+                    let title = color::gradient_text("Backend Update", (80.,220.,160.), (111.,81.,218.));
+                    let mut b = color::BentoBox::new(&title);
+                    b.add(&format!("{} {} {}", color::dim(&cache.backend_tag), color::dim("→"), color::yellow(&info.tag)));
+                    b.draw();
+                }
+                download_backend(client, &info).await?;
+                cache = read_version_cache();
+            }
+        }
+
+        cache.last_check_time = Some(now);
+        write_version_cache(&cache);
+    } else {
+        if !backend_path().exists() {
+            return Box::pin(ensure_and_start(client, true)).await;
+        }
     }
 
     let child = tokio::process::Command::new(&path)

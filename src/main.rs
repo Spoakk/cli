@@ -192,8 +192,7 @@ async fn run_interactive() {
     let http = make_client();
     let mut backend_child: Option<tokio::process::Child> = None;
 
-    println!("{} Checking for updates...", color::dim("❯"));
-    if let Ok(c) = backend::ensure_and_start(&http).await {
+    if let Ok(c) = backend::ensure_and_start(&http, false).await {
         backend_child = Some(c);
     }
 
@@ -230,7 +229,8 @@ async fn run_interactive() {
             }
              ["install"] => handle(install::add_to_path()),
             ["update"] => {
-                if let Err(e) = backend::ensure_and_start(&http).await {
+                println!("{} Checking for updates from GitHub...", color::dim("❯"));
+                if let Err(e) = backend::ensure_and_start(&http, true).await {
                     eprintln!("{} {}", color::red("error:"), e);
                 } else {
                     println!("{} All up to date!", color::green("✓"));
@@ -238,9 +238,9 @@ async fn run_interactive() {
             }
             _ => {
                 if backend_child.is_none() {
-                    match backend::ensure_and_start(&http).await {
+                    match backend::ensure_and_start(&http, false).await {
                         Ok(c) => backend_child = Some(c),
-                        Err(e) => { eprintln!("{} {}", color::red("error:"), e); continue; }
+                        Err(e) => eprintln!("{} {}", color::red("error:"), e),
                     }
                 }
                 let result = match parts.as_slice() {
