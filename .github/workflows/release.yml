@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-and-release:
+    name: Build & Release CLI
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      
+    - name: Build Release
+      run: cargo build --release
+      
+    - name: Prepare Artifacts
+      shell: bash
+      run: |
+        if [ "${{ runner.os }}" = "Windows" ]; then
+          mv target/release/spoak.exe spoak-cli-${{ runner.os }}.exe
+        else
+          mv target/release/spoak spoak-cli-${{ runner.os }}
+        fi
+
+    - name: Upload Release Assets
+      uses: softprops/action-gh-release@v1
+      with:
+        files: spoak-cli-*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
