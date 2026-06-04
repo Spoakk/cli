@@ -8,7 +8,7 @@
   ╚══════╝╚═╝      ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝
 </pre>
 
-# Spoak CLI (v0.2.1)
+# Spoak CLI (v0.3.0)
 
 **Terminalde Yaşayan Spoak Deneyimi.**  
 Minecraft sunucu yöneticileri ve oyuncuları için tasarlanmış renkli, etkileşimli ve çarpıcı bir CLI (Komut Satırı Arayüzü). "Bento Box" mimarisiyle modern Web3 estetiğini terminale getiriyor.
@@ -19,11 +19,18 @@ Minecraft sunucu yöneticileri ve oyuncuları için tasarlanmış renkli, etkile
 
 ---
 
+## ✨ Neler Yeni? (v0.3.0)
+- **🚀 Oto-Güncelleyici:** Artık CLI, her açılışında arka planda güncellemeleri saniyeler içinde sessizce kontrol edip doğrudan `update` mekanizmasına yönlendiriyor.
+- **📦 Yeni JAR'lar:** Paper ve Leaf'in yanı sıra artık **Purpur** ve **Folia** sürümlerini de saniyeler içinde çekebiliyorsunuz!
+- **🎨 Bento Box 2.0:** Tüm arayüz, zarif ASCII sanatlarıyla ve geçişli degrade (gradient) renk paletiyle baştan aşağıya yenilendi.
+- **⚡ Akıllı Yükleyici:** Yükleme scripti (install.ps1) eski hatalarından arındırıldı ve tamamen standart karakterlerle kusursuz hale getirildi.
+
+---
+
 ## ✨ Özellikler
 
 - **Göz Alıcı Çıktılar (Terminal Bento):** Tüm çıktılar sade loglar yerine interaktif, unicode pencerelerde RGB degrade renk geçişleriyle sunulur.
 - **Otomatik Backend:** CLI ilk başlatıldığında arka planda otomatik olarak `spoak-backend`'i kurar, günceller ve gizlice çalıştırır.
-- **Güvenli Doğrulama:** Backend'in doğruluğunu SHA256 ile teyit eder.
 - **Kullanımı Kolay İnteraktif Mod:** Sadece `spoak` yazarak CLI tabanlı modern shell ortamına ( `spoak ❯` ) geçiş yapın.
 
 ---
@@ -47,10 +54,14 @@ Komut satırından direkt çalıştırabilir veya interaktif ortama geçiş yapa
 
 | Komut | Açıklama |
 |----------|----------|
+| `spoak update` | CLI ve Backend için en yeni sürümü kontrol eder ve otomatik günceller. |
 | `spoak ping <host> [port]` | Hedef sunucuyu pingler, durumu ve MOTD'yi zarif bir panelde gösterir. |
 | `spoak player <username>` | Oyuncunun UUID'sini, Skin modelini bulur ve profilini raporlar. |
 | `spoak jars versions` | Tüm güncel Minecraft versiyonlarını grid biçiminde listeler. |
 | `spoak jars paper <version>` | Paper'ın belirlediğiniz versiyonu için en son build numarasını getirir. |
+| `spoak jars purpur <version>` | Purpur'un en güncel versiyon buildini terminale yansıtır. |
+| `spoak jars folia <version>` | Folia'nın çok çekirdekli destekli buildlerini gösterir. |
+| `spoak jars leaf <version>` | Leaf'in belirlediğiniz sürümü için optimize verileri listeler. |
 | `spoak coords nether <x> <z>` | Overworld koordinatlarını Nether'e uyarlar. |
 | `spoak structures <seed> [x] [z]` | Dünyadaki en yakın biyom yapılarını hesaplar ve sana uzaklığını söyler. |
 
@@ -64,7 +75,7 @@ git clone https://github.com/spoakk/cli
 cd spoak-cli
 cargo build --release
 ```
-Derlenmiş executable `target/release/spoak` veya `spoak.exe` altında olacaktır.
+Derlenmiş executable `target/release/spoak.exe` altında olacaktır.
 
 ## 🔗 İlgili Bağlantılar
 - **Web Sitesi:** [spoak.cc](https://spoak.cc)
