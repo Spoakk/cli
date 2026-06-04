@@ -192,6 +192,11 @@ async fn run_interactive() {
     let http = make_client();
     let mut backend_child: Option<tokio::process::Child> = None;
 
+    println!("{} Checking for updates...", color::dim("❯"));
+    if let Ok(c) = backend::ensure_and_start(&http).await {
+        backend_child = Some(c);
+    }
+
     loop {
         let render_config = inquire::ui::RenderConfig::default()
             .with_prompt_prefix(inquire::ui::Styled::new("spoak ❯").with_fg(inquire::ui::Color::LightMagenta));

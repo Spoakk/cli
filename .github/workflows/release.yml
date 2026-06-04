@@ -29,6 +29,7 @@ jobs:
       shell: bash
       run: |
         if [ "${{ runner.os }}" = "Windows" ]; then
+          cp target/release/spoak.exe spoak.exe
           mv target/release/spoak.exe spoak-cli-${{ runner.os }}.exe
         else
           mv target/release/spoak spoak-cli-${{ runner.os }}
@@ -37,6 +38,8 @@ jobs:
     - name: Upload Release Assets
       uses: softprops/action-gh-release@v1
       with:
-        files: spoak-cli-*
+        files: |
+          spoak-cli-*
+          spoak.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
