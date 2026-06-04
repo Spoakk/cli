@@ -9,9 +9,24 @@ use futures_util::StreamExt;
 
 const GITHUB_API: &str = "https://api.github.com/repos/Spoakk/backend/releases/latest";
 const CLI_GITHUB_API: &str = "https://api.github.com/repos/Spoakk/cli/releases/latest";
-const ASSET_NAME: &str = "spoak-backend.exe";
-const USER_AGENT: &str = "spoak-cli/0.1.0";
+const USER_AGENT: &str = "spoak-cli/0.2.3";
 pub const API_BASE: &str = "http://localhost:4000/api/v2";
+
+fn remote_backend_name() -> &'static str {
+    #[cfg(target_os = "windows")]
+    return "spoak-backend-Windows.exe";
+    #[cfg(target_os = "linux")]
+    return "spoak-backend-Linux";
+    #[cfg(target_os = "macos")]
+    return "spoak-backend-macOS";
+}
+
+fn local_backend_name() -> &'static str {
+    #[cfg(target_os = "windows")]
+    return "spoak-backend.exe";
+    #[cfg(not(target_os = "windows"))]
+    return "spoak-backend";
+}
 const CLI_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn spoak_dir() -> PathBuf {
@@ -22,7 +37,7 @@ fn spoak_dir() -> PathBuf {
 }
 
 pub fn backend_path() -> PathBuf {
-    spoak_dir().join(ASSET_NAME)
+    spoak_dir().join(local_backend_name())
 }
 
 fn version_file_path() -> PathBuf {
@@ -74,14 +89,14 @@ async fn fetch_latest_release(client: &reqwest::Client) -> Result<ReleaseInfo> {
 
     let mut download_url = None;
     for asset in assets {
-        if asset["name"].as_str() == Some(ASSET_NAME) {
+        if asset["name"].as_str() == Some(remote_backend_name()) {
             download_url = asset["browser_download_url"].as_str().map(|s| s.to_string());
             break;
         }
     }
 
     let download_url = download_url
-        .ok_or_else(|| anyhow!("Asset '{}' not found in release {}", ASSET_NAME, tag))?;
+        .ok_or_else(|| anyhow!("Asset '{}' not found in release {}", remote_backend_name(), tag))?;
 
     let sha256 = release["body"].as_str().and_then(|body| {
         body.lines()
@@ -195,8 +210,11 @@ pub async fn ensure_and_start(client: &reqwest::Client) -> Result<Child> {
                 b.set_width(70);
                 b.add(&format!("CLI update: v{} {} v{}", current, color::dim("→"), color::green(&latest)));
                 b.empty_line();
-                b.add(&format!("Run the following command to update:"));
-                b.add(&color::dim("iwr -useb https://github.com/Spoakk/cli/releases/latest/download/spoak.exe -OutFile spoak.exe").to_string());
+                b.add(&format!("Run the following command to update manually:"));
+                #[cfg(target_os = "windows")]
+                b.add(&color::dim("iwr -useb https://github.com/Spoakk/cli/releases/latest/download/spoak-cli-Windows.exe -OutFile spoak.exe").to_string());
+                #[cfg(not(target_os = "windows"))]
+                b.add(&color::dim("curl -Lo spoak https://github.com/Spoakk/cli/releases/latest/download/spoak-cli-Linux").to_string());
                 b.draw();
                 
                 write_version_cache(&VersionCache {
@@ -270,14 +288,16 @@ async fn wait_for_ready() -> Result<()> {
 async fn self_update(_client: &reqwest::Client, tag: &str) -> Result<()> {
     let current_exe = std::env::current_exe()?;
 
-    #[cfg(windows)]
-    let asset_name = "spoak.exe";
-    #[cfg(not(windows))]
-    let asset_name = "spoak";
+    #[cfg(target_os = "windows")]
+    let remote_cli_name = "spoak-cli-Windows.exe";
+    #[cfg(target_os = "linux")]
+    let remote_cli_name = "spoak-cli-Linux";
+    #[cfg(target_os = "macos")]
+    let remote_cli_name = "spoak-cli-macOS";
 
     let download_url = format!(
         "https://github.com/Spoakk/cli/releases/download/{}/{}",
-        tag, asset_name
+        tag, remote_cli_name
     );
 
     let title = color::gradient_text("Updating CLI", (111.,81.,218.), (244.,114.,182.));

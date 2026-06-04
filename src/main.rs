@@ -30,6 +30,7 @@ impl Autocomplete for CmdCompleter {
             "exit",
             "quit",
             "install",
+            "update",
         ];
         
         let mut matches = vec![];
@@ -222,7 +223,14 @@ async fn run_interactive() {
                     handle(commands::coords_overworld(x, z));
                 } else { eprintln!("Invalid coordinates"); }
             }
-            ["install"] => handle(install::add_to_path()),
+             ["install"] => handle(install::add_to_path()),
+            ["update"] => {
+                if let Err(e) = backend::ensure_and_start(&http).await {
+                    eprintln!("{} {}", color::red("error:"), e);
+                } else {
+                    println!("{} All up to date!", color::green("✓"));
+                }
+            }
             _ => {
                 if backend_child.is_none() {
                     match backend::ensure_and_start(&http).await {
@@ -297,6 +305,7 @@ fn print_help() {
     println!("  {}  overworld <x> <z> Nether → Overworld coords", color::spoak("coords"));
     println!("  {}  <seed> [x] [z]    Find structures in seed", color::spoak("structures"));
     println!("  {}                    Add spoak to PATH", color::spoak("install"));
+    println!("  {}                     Check for updates", color::spoak("update"));
     println!("  {}                    Quit", color::spoak("exit"));
 }
 
