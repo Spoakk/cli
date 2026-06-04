@@ -179,7 +179,9 @@ async fn main() {
                 _ => unreachable!(),
             };
 
-            let _ = child.kill().await;
+            if let Some(mut c) = child {
+                let _ = c.kill().await;
+            }
             handle(result);
         }
     }
