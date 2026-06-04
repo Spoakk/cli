@@ -77,6 +77,16 @@ pub async fn leaf_builds(version: &str) -> Result<BuildsResponse> {
     Ok(client().get(&url).send().await?.json().await?)
 }
 
+pub async fn purpur_builds(version: &str) -> Result<BuildsResponse> {
+    let url = format!("{}/serverjars/purpur/{}/builds", API_BASE, version);
+    Ok(client().get(&url).send().await?.json().await?)
+}
+
+pub async fn folia_builds(version: &str) -> Result<BuildsResponse> {
+    let url = format!("{}/serverjars/folia/{}/builds", API_BASE, version);
+    Ok(client().get(&url).send().await?.json().await?)
+}
+
 fn urlencoded(s: &str) -> String {
     s.replace(' ', "%20").replace(':', "%3A")
 }

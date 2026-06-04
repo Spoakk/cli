@@ -126,6 +126,18 @@ pub async fn jars_leaf(version: &str, all: bool) -> Result<()> {
     Ok(())
 }
 
+pub async fn jars_purpur(version: &str, all: bool) -> Result<()> {
+    let resp = api::purpur_builds(version).await?;
+    print_builds("Purpur", version, &resp.builds, all);
+    Ok(())
+}
+
+pub async fn jars_folia(version: &str, all: bool) -> Result<()> {
+    let resp = api::folia_builds(version).await?;
+    print_builds("Folia", version, &resp.builds, all);
+    Ok(())
+}
+
 fn print_builds(name: &str, version: &str, builds: &[api::JarBuild], all: bool) {
     let title = format!("{} {}", color::gradient_text("Jars", (255.,160.,50.), (255.,100.,140.)), color::bold(name));
     let mut b = color::BentoBox::new(&title);

@@ -21,6 +21,8 @@ impl Autocomplete for CmdCompleter {
             "jars versions",
             "jars paper 1.21.4",
             "jars leaf 1.21.4",
+            "jars purpur 1.21.4",
+            "jars folia 1.21.4",
             "coords nether 100 100",
             "coords overworld 10 10",
             "structures 123456789",
@@ -103,6 +105,16 @@ enum JarsCommands {
         #[arg(short, long)]
         all: bool,
     },
+    Purpur {
+        version: String,
+        #[arg(short, long)]
+        all: bool,
+    },
+    Folia {
+        version: String,
+        #[arg(short, long)]
+        all: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -159,6 +171,8 @@ async fn main() {
                     JarsCommands::Versions => commands::jars_versions().await,
                     JarsCommands::Paper { version, all } => commands::jars_paper(&version, all).await,
                     JarsCommands::Leaf { version, all } => commands::jars_leaf(&version, all).await,
+                    JarsCommands::Purpur { version, all } => commands::jars_purpur(&version, all).await,
+                    JarsCommands::Folia { version, all } => commands::jars_folia(&version, all).await,
                 },
                 Commands::Structures { seed, x, z, radius } => commands::seedmap_structures(&seed, x, z, radius).await,
                 _ => unreachable!(),
@@ -228,6 +242,10 @@ async fn run_interactive() {
                     ["jars", "paper", ver, "--all"] => commands::jars_paper(ver, true).await,
                     ["jars", "leaf", ver] => commands::jars_leaf(ver, false).await,
                     ["jars", "leaf", ver, "--all"] => commands::jars_leaf(ver, true).await,
+                    ["jars", "purpur", ver] => commands::jars_purpur(ver, false).await,
+                    ["jars", "purpur", ver, "--all"] => commands::jars_purpur(ver, true).await,
+                    ["jars", "folia", ver] => commands::jars_folia(ver, false).await,
+                    ["jars", "folia", ver, "--all"] => commands::jars_folia(ver, true).await,
                     ["structures", seed] => commands::seedmap_structures(seed, 0, 0, 1024).await,
                     ["structures", seed, x, z] => {
                         if let (Ok(x), Ok(z)) = (x.parse(), z.parse()) {
@@ -273,6 +291,8 @@ fn print_help() {
     println!("  {}  versions          List Minecraft versions", color::spoak("jars"));
     println!("  {}  paper <ver>       Latest Paper build", color::spoak("jars"));
     println!("  {}  leaf  <ver>       Latest Leaf build", color::spoak("jars"));
+    println!("  {}  purpur <ver>      Latest Purpur build", color::spoak("jars"));
+    println!("  {}  folia  <ver>      Latest Folia build", color::spoak("jars"));
     println!("  {}  nether <x> <z>    Overworld → Nether coords", color::spoak("coords"));
     println!("  {}  overworld <x> <z> Nether → Overworld coords", color::spoak("coords"));
     println!("  {}  <seed> [x] [z]    Find structures in seed", color::spoak("structures"));

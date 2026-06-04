@@ -108,7 +108,11 @@ async fn fetch_release_tag(client: &reqwest::Client, api_url: &str) -> Result<St
 async fn download_backend(_client: &reqwest::Client, info: &ReleaseInfo) -> Result<()> {
     std::fs::create_dir_all(spoak_dir())?;
 
-    println!("{} backend {} ...", color::spoak("Downloading"), color::yellow(&info.tag));
+    let title = color::gradient_text("Updater", (111.,81.,218.), (244.,114.,182.));
+    let mut b = color::BentoBox::new(&title);
+    b.set_width(60);
+    b.add(&format!("Downloading backend {} ...", color::yellow(&info.tag)));
+    b.draw();
 
     let dl_client = reqwest::Client::builder()
         .redirect(reqwest::redirect::Policy::limited(10))
@@ -131,7 +135,12 @@ async fn download_backend(_client: &reqwest::Client, info: &ReleaseInfo) -> Resu
         bytes.extend_from_slice(&chunk);
         if total > 0 {
             let pct = downloaded * 100 / total;
-            print!("\r  {:.1}/{:.1} MB  {}%",
+            let bars = (pct / 5) as usize;
+            let empty = 20_usize.saturating_sub(bars);
+            let bar_str = format!("{}{}", color::green(&"█".repeat(bars)), color::dim(&"░".repeat(empty)));
+            print!("\r  {} {} {:.1}/{:.1} MB  {}%", 
+                color::dim("Progress"),
+                bar_str,
                 downloaded as f64 / 1_000_000.0,
                 total as f64 / 1_000_000.0,
                 pct);
@@ -168,7 +177,7 @@ async fn download_backend(_client: &reqwest::Client, info: &ReleaseInfo) -> Resu
         cli_latest_tag: read_version_cache().cli_latest_tag,
     });
 
-    println!("{} Backend {} ready", color::green("✓"), color::yellow(&info.tag));
+    println!("\n  {} Backend ready", color::green("✓"));
     Ok(())
 }
 
@@ -181,10 +190,14 @@ pub async fn ensure_and_start(client: &reqwest::Client) -> Result<Child> {
         
         if latest != current {
             if cache.cli_latest_tag != cli_release {
-                println!("{} CLI update available: v{} → v{}",
-                    color::yellow("↑"), current, color::spoak(&latest));
-                println!("  Run: {}",
-                    color::dim("iwr -useb https://github.com/Spoakk/cli/releases/latest/download/spoak.exe -OutFile spoak.exe"));
+                let title = color::gradient_text("Update Available", (255.,160.,50.), (255.,100.,140.));
+                let mut b = color::BentoBox::new(&title);
+                b.set_width(70);
+                b.add(&format!("CLI update: v{} {} v{}", current, color::dim("→"), color::green(&latest)));
+                b.empty_line();
+                b.add(&format!("Run the following command to update:"));
+                b.add(&color::dim("iwr -useb https://github.com/Spoakk/cli/releases/latest/download/spoak.exe -OutFile spoak.exe").to_string());
+                b.draw();
                 
                 write_version_cache(&VersionCache {
                     cli_latest_tag: cli_release.clone(),
@@ -192,7 +205,7 @@ pub async fn ensure_and_start(client: &reqwest::Client) -> Result<Child> {
                 });
 
                 if let Ok(()) = self_update(client, &cli_release).await {
-                    println!("{} CLI updated to v{} — please restart.", color::green("✓"), color::spoak(&latest));
+                    println!("\n  {} CLI updated to v{} — please restart.", color::green("✓"), color::green(&latest));
                     std::process::exit(0);
                 }
             }
@@ -205,8 +218,10 @@ pub async fn ensure_and_start(client: &reqwest::Client) -> Result<Child> {
     }
 
     if !cache.cli_version.is_empty() && cache.cli_version != CLI_VERSION {
-        println!("{} CLI updated: {} → {}",
-            color::spoak("↑"), color::dim(&cache.cli_version), color::green(CLI_VERSION));
+        let title = color::gradient_text("Update Complete", (80.,220.,160.), (111.,81.,218.));
+        let mut b = color::BentoBox::new(&title);
+        b.add(&format!("CLI updated: {} {} {}", color::dim(&cache.cli_version), color::dim("→"), color::green(CLI_VERSION)));
+        b.draw();
     }
 
     let info = fetch_latest_release(client).await
@@ -219,8 +234,10 @@ pub async fn ensure_and_start(client: &reqwest::Client) -> Result<Child> {
 
     if needs_download {
         if path.exists() && cache.backend_tag != info.tag {
-            println!("{} Backend update: {} → {}",
-                color::spoak("↑"), color::dim(&cache.backend_tag), color::yellow(&info.tag));
+            let title = color::gradient_text("Backend Update", (80.,220.,160.), (111.,81.,218.));
+            let mut b = color::BentoBox::new(&title);
+            b.add(&format!("{} {} {}", color::dim(&cache.backend_tag), color::dim("→"), color::yellow(&info.tag)));
+            b.draw();
         }
         download_backend(client, &info).await?;
     }
@@ -263,7 +280,10 @@ async fn self_update(_client: &reqwest::Client, tag: &str) -> Result<()> {
         tag, asset_name
     );
 
-    println!("{} Downloading CLI {} ...", color::spoak("Updating"), color::yellow(tag));
+    let title = color::gradient_text("Updating CLI", (111.,81.,218.), (244.,114.,182.));
+    let mut b = color::BentoBox::new(&title);
+    b.add(&format!("Downloading CLI {} ...", color::yellow(tag)));
+    b.draw();
 
     let dl_client = reqwest::Client::builder()
         .redirect(reqwest::redirect::Policy::limited(10))
