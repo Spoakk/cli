@@ -2,27 +2,32 @@ $ErrorActionPreference = 'Continue'
 
 $repo = 'Spoakk/cli'
 $bin = 'spoak.exe'
+$remoteAsset = 'spoak-cli-Windows.exe'
 $installDir = Join-Path $env:USERPROFILE '.spoak\bin'
 $hasError = $false
 
 function Write-Step {
     param($msg)
-    Write-Host "  $msg" -ForegroundColor Cyan
+    Write-Host "  ❯ " -NoNewline -ForegroundColor Magenta
+    Write-Host $msg -ForegroundColor White
 }
 
 function Write-Ok {
     param($msg)
-    Write-Host "  $msg" -ForegroundColor Green
+    Write-Host "  ✓ " -NoNewline -ForegroundColor Green
+    Write-Host $msg -ForegroundColor DarkGray
 }
 
 function Write-Err {
     param($msg)
-    Write-Host "  $msg" -ForegroundColor Red
+    Write-Host "  ✗ " -NoNewline -ForegroundColor Red
+    Write-Host $msg -ForegroundColor White
 }
 
 function Write-Warn {
     param($msg)
-    Write-Host "  $msg" -ForegroundColor Yellow
+    Write-Host "  ! " -NoNewline -ForegroundColor Yellow
+    Write-Host $msg -ForegroundColor DarkGray
 }
 
 function Wait-ForKey {
@@ -32,8 +37,9 @@ function Wait-ForKey {
 }
 
 Write-Host ''
-Write-Host '  Spoak CLI Installer' -ForegroundColor Magenta
-Write-Host '  ---------------------------------' -ForegroundColor DarkGray
+Write-Host '  ╭──────────────────────────────────────╮' -ForegroundColor DarkMagenta
+Write-Host '  │          Spoak CLI Installer         │' -ForegroundColor Magenta
+Write-Host '  ╰──────────────────────────────────────╯' -ForegroundColor DarkMagenta
 Write-Host ''
 
 Write-Step 'Fetching latest release from GitHub...'
@@ -70,7 +76,7 @@ try {
 
 Write-Step "Looking for $bin..."
 try {
-    $asset = $release.assets | Where-Object { $_.name -eq $bin } | Select-Object -First 1
+    $asset = $release.assets | Where-Object { $_.name -eq $remoteAsset } | Select-Object -First 1
     
     if (-not $asset) {
         Write-Err "Asset not found in release $tag"
@@ -217,14 +223,18 @@ try {
 
 Write-Host ''
 if (-not $hasError) {
-    Write-Host '  ✓ Spoak CLI installed successfully!' -ForegroundColor Green
+    Write-Host '  ╭──────────────────────────────────────╮' -ForegroundColor DarkGreen
+    Write-Host '  │  ✓ Spoak CLI installed successfully  │' -ForegroundColor Green
+    Write-Host '  ╰──────────────────────────────────────╯' -ForegroundColor DarkGreen
     Write-Host ''
-    Write-Host '  Next steps:' -ForegroundColor Cyan
+    Write-Host '  Next steps:' -ForegroundColor Magenta
     Write-Host '    1. Open a new terminal window' -ForegroundColor DarkGray
     Write-Host '    2. Run: spoak' -ForegroundColor DarkGray
     Write-Host ''
 } else {
-    Write-Host '  ✗ Installation completed with errors' -ForegroundColor Yellow
+    Write-Host '  ╭──────────────────────────────────────╮' -ForegroundColor DarkRed
+    Write-Host '  │  ✗ Installation finished with errors │' -ForegroundColor Red
+    Write-Host '  ╰──────────────────────────────────────╯' -ForegroundColor DarkRed
     Write-Host ''
     Write-Host '  Please review the errors above and try again' -ForegroundColor DarkGray
     Write-Host ''
