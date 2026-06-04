@@ -157,8 +157,8 @@ async fn main() {
 
         Some(cmd) => {
             let http = make_client();
-            let mut child = match backend::ensure_and_start(&http).await {
-                Ok(c) => c,
+            let mut child = match backend::ensure_and_start(&http, false).await {
+                Ok(c) => Some(c),
                 Err(e) => {
                     eprintln!("{} {}", color::red("error:"), e);
                     std::process::exit(1);

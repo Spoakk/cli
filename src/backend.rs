@@ -196,6 +196,7 @@ async fn download_backend(_client: &reqwest::Client, info: &ReleaseInfo) -> Resu
         backend_sha256: actual_hash,
         cli_version: CLI_VERSION.to_string(),
         cli_latest_tag: read_version_cache().cli_latest_tag,
+        last_check_time: read_version_cache().last_check_time,
     });
 
     println!("\n  {} Backend ready", color::green("✓"));
@@ -275,6 +276,7 @@ pub async fn ensure_and_start(client: &reqwest::Client, force_check: bool) -> Re
         }
     }
 
+    let path = backend_path();
     let child = tokio::process::Command::new(&path)
         .env("PORT", "4000")
         .env("ALLOWED_ORIGINS", "http://localhost")

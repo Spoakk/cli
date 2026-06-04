@@ -57,7 +57,7 @@ fn add_to_path_windows(dir: &PathBuf, _exe: &PathBuf) -> Result<()> {
 }
 
 #[cfg(not(windows))]
-fn add_to_path_unix(dir: &PathBuf, exe: &PathBuf) -> Result<()> {
+fn add_to_path_unix(_dir: &PathBuf, exe: &PathBuf) -> Result<()> {
     let bin_dir = PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".local/bin");
     std::fs::create_dir_all(&bin_dir)?;
     let link = bin_dir.join("spoak");
