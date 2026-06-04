@@ -214,7 +214,7 @@ pub async fn ensure_and_start(client: &reqwest::Client, force_check: bool) -> Re
             let current = CLI_VERSION.trim_start_matches('v');
             
             if latest != current {
-                if cache.cli_latest_tag != cli_release {
+                if force_check || cache.cli_latest_tag != cli_release {
                     let title = color::gradient_text("Update Available", (255.,160.,50.), (255.,100.,140.));
                     let mut b = color::BentoBox::new(&title);
                     b.set_width(70);
