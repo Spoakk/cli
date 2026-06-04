@@ -83,6 +83,7 @@ fn urlencoded(s: &str) -> String {
 
 #[derive(Deserialize)]
 pub struct StructureMarker {
+    #[allow(dead_code)]
     pub kind: String,
     pub label: String,
     pub x: i32,

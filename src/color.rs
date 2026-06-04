@@ -4,10 +4,6 @@ use std::fmt;
 const R: u8 = 124;
 const G: u8 = 90;
 const B: u8 = 243;
-// #6448c3 — dim
-const RD: u8 = 100;
-const GD: u8 = 72;
-const BD: u8 = 195;
 
 pub fn init() {
     #[cfg(windows)]
@@ -52,10 +48,6 @@ impl fmt::Display for Colored {
 
 pub fn spoak(s: impl Into<String>) -> Colored {
     Colored { fg: Some((R, G, B)), bold: true, ..Colored::new(s) }
-}
-
-pub fn spoak_dim(s: impl Into<String>) -> Colored {
-    Colored { fg: Some((RD, GD, BD)), bold: false, ..Colored::new(s) }
 }
 
 pub fn bold(s: impl Into<String>) -> Colored {
@@ -166,4 +158,83 @@ fn hex_to_ansi(hex: &str) -> Option<String> {
     let g = u8::from_str_radix(&h[2..4], 16).ok()?;
     let b = u8::from_str_radix(&h[4..6], 16).ok()?;
     Some(format!("\x1b[38;2;{};{};{}m", r, g, b))
+}
+
+pub fn gradient_text(text: &str, start: (f32, f32, f32), end: (f32, f32, f32)) -> String {
+    let chars: Vec<char> = text.chars().collect();
+    let len = chars.len().max(1) as f32;
+    let mut out = String::new();
+    
+    for (i, &c) in chars.iter().enumerate() {
+        let t = i as f32 / (len - 1.0).max(1.0);
+        let r = (start.0 + (end.0 - start.0) * t) as u8;
+        let g = (start.1 + (end.1 - start.1) * t) as u8;
+        let b = (start.2 + (end.2 - start.2) * t) as u8;
+        out.push_str(&format!("\x1b[38;2;{};{};{}m{}", r, g, b, c));
+    }
+    out.push_str("\x1b[0m");
+    out
+}
+
+pub fn visible_len(s: &str) -> usize {
+    let mut len = 0;
+    let mut in_ansi = false;
+    for c in s.chars() {
+        if c == '\x1b' { in_ansi = true; continue; }
+        if in_ansi {
+            if c.is_ascii_alphabetic() { in_ansi = false; }
+            continue;
+        }
+        len += 1;
+    }
+    len
+}
+
+pub struct BentoBox {
+    title: String,
+    lines: Vec<String>,
+    width: usize,
+}
+
+impl BentoBox {
+    pub fn new(title: &str) -> Self {
+        Self {
+            title: title.to_string(),
+            lines: Vec::new(),
+            width: 60,
+        }
+    }
+
+    pub fn set_width(&mut self, w: usize) {
+        self.width = w;
+    }
+
+    pub fn add(&mut self, line: &str) {
+        self.lines.push(line.to_string());
+    }
+
+    pub fn empty_line(&mut self) {
+        self.lines.push(String::new());
+    }
+
+    pub fn draw(&self) {
+        let title_len = visible_len(&self.title);
+        let top_border_len = self.width.saturating_sub(title_len + 4).max(2);
+        
+        let border_color = "\x1b[38;2;45;45;55m";
+        let reset = "\x1b[0m";
+
+        let mut top = format!("{}╭─ {} ", border_color, self.title);
+        top.push_str(&"─".repeat(top_border_len));
+        top.push_str(&format!("╮{}", reset));
+        println!("{}", top);
+
+        for line in &self.lines {
+            let vis = visible_len(line);
+            let pad = self.width.saturating_sub(vis + 4).max(0);
+            println!("{}│{}  {}{} {}│{}", border_color, reset, line, " ".repeat(pad), border_color, reset);
+        }
+
+        println!("{}╰{}╯{}", border_color, "─".repeat(self.width.saturating_sub(2).max(2)), reset);
+    }
 }

@@ -1,96 +1,72 @@
-![Spoak Banner](readmd/spoakbanner-cli.png)
+<div align="center">
+<pre>
+  ███████╗██████╗  ██████╗  █████╗ ██╗  ██╗
+  ██╔════╝██╔══██╗██╔═══██╗██╔══██╗██║ ██╔╝
+  ███████╗██████╔╝██║   ██║███████║█████╔╝ 
+  ╚════██║██╔═══╝ ██║   ██║██╔══██║██╔═██╗ 
+  ███████║██║     ╚██████╔╝██║  ██║██║  ██╗
+  ╚══════╝╚═╝      ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝
+</pre>
 
-# Spoak CLI v0.1
+# Spoak CLI (v0.2.1)
 
-Minecraft sunucu yöneticileri ve oyuncuları için terminal tabanlı araç koleksiyonu. Rust ile geliştirilmiş, [spoak-backend](https://github.com/spoakk/backend) ile çalışır.
+**Terminalde Yaşayan Spoak Deneyimi.**  
+Minecraft sunucu yöneticileri ve oyuncuları için tasarlanmış renkli, etkileşimli ve çarpıcı bir CLI (Komut Satırı Arayüzü). "Bento Box" mimarisiyle modern Web3 estetiğini terminale getiriyor.
 
-[![GitHub](https://img.shields.io/badge/GitHub-spoakk%2Fbackend-181717?logo=github)](https://github.com/spoakk/backend)
+[![GitHub](https://img.shields.io/badge/GitHub-spoakk%2Fbackend-181717?logo=github)](https://github.com/spoakk/backend) [![Rust](https://img.shields.io/badge/Rust-1.75%2B-orange?logo=rust)](https://rust-lang.org)
 
-## Özellikler
+</div>
 
-- **Tek Binary** — Node, Python ya da başka runtime gerekmez
-- **Otomatik Backend** — İlk çalıştırmada backend'i otomatik indirir ve başlatır
-- **Otomatik Güncelleme** — Her çalıştırmada GitHub Releases'i kontrol eder
-- **İnteraktif Mod** — Komut satırı argümanları veya interaktif menü
-- **Renkli Çıktı** — Terminal'de tam renk desteği
+---
 
-## Kurulum
+## ✨ Özellikler
+
+- **Göz Alıcı Çıktılar (Terminal Bento):** Tüm çıktılar sade loglar yerine interaktif, unicode pencerelerde RGB degrade renk geçişleriyle sunulur.
+- **Otomatik Backend:** CLI ilk başlatıldığında arka planda otomatik olarak `spoak-backend`'i kurar, günceller ve gizlice çalıştırır.
+- **Güvenli Doğrulama:** Backend'in doğruluğunu SHA256 ile teyit eder.
+- **Kullanımı Kolay İnteraktif Mod:** Sadece `spoak` yazarak CLI tabanlı modern shell ortamına ( `spoak ❯` ) geçiş yapın.
+
+---
+
+## 🛠️ Kurulum
 
 ### Windows (PowerShell)
-
+Tek satırda kurulum için:
 ```powershell
 iwr -useb https://raw.githubusercontent.com/Spoakk/cli/main/install.ps1 | iex
 ```
 
-### Manuel İndirme
+### Manuel Yükleme
+Alternatif olarak, doğrudan [GitHub Releases](https://github.com/Spoakk/cli/releases/latest) sayfasından işletim sisteminize uygun `.exe` veya binary dosyasını indirip `PATH` (Ortam Değişkenleri) içine ekleyebilirsiniz.
 
-[GitHub Releases](https://github.com/Spoakk/cli/releases/latest) sayfasından binary'yi indirin ve PATH'e ekleyin.
+---
 
-## Kullanım
+## 💻 Kullanım (Komutlar)
 
-### İnteraktif Mod
-
-```bash
-spoak
-```
-
-### Komut Satırı
-
-```bash
-# Sunucu ping
-spoak ping play.hypixel.net
-
-# Oyuncu profili
-spoak player Notch
-
-# Sunucu jar'ları listele
-spoak jars versions
-spoak jars paper 1.21.4
-
-# Yardım
-spoak help
-```
-
-## Komutlar
+Komut satırından direkt çalıştırabilir veya interaktif ortama geçiş yapabilirsiniz.
 
 | Komut | Açıklama |
-|-------|----------|
-| `ping <host> [port]` | Minecraft sunucusunu ping'le |
-| `player <username>` | UUID, skin ve oyuncu bilgilerini sorgula |
-| `jars versions` | Minecraft sürümlerini listele |
-| `jars paper <version>` | Paper build'lerini listele |
-| `jars leaf <version>` | Leaf build'lerini listele |
-| `help` | Yardım menüsünü göster |
+|----------|----------|
+| `spoak ping <host> [port]` | Hedef sunucuyu pingler, durumu ve MOTD'yi zarif bir panelde gösterir. |
+| `spoak player <username>` | Oyuncunun UUID'sini, Skin modelini bulur ve profilini raporlar. |
+| `spoak jars versions` | Tüm güncel Minecraft versiyonlarını grid biçiminde listeler. |
+| `spoak jars paper <version>` | Paper'ın belirlediğiniz versiyonu için en son build numarasını getirir. |
+| `spoak coords nether <x> <z>` | Overworld koordinatlarını Nether'e uyarlar. |
+| `spoak structures <seed> [x] [z]` | Dünyadaki en yakın biyom yapılarını hesaplar ve sana uzaklığını söyler. |
 
-## Backend Yönetimi
+---
 
-CLI, backend'i otomatik olarak yönetir:
+## 🛠 Kaynak Koddan Derleme
 
-- **İlk çalıştırma:** Backend'i `~/.spoak/spoak-backend.exe` konumuna indirir
-- **Güncelleme:** Her çalıştırmada GitHub'dan yeni sürüm kontrolü yapar
-- **SHA256 Doğrulama:** İndirilen dosyaların bütünlüğünü kontrol eder
-- **Otomatik Başlatma:** Backend'i arka planda başlatır ve hazır olmasını bekler
-
-## Geliştirme
-
+Kendi ortamında derlemek istersen:
 ```bash
 git clone https://github.com/spoakk/cli
 cd spoak-cli
 cargo build --release
 ```
+Derlenmiş executable `target/release/spoak` veya `spoak.exe` altında olacaktır.
 
-Binary `target/release/spoak.exe` konumunda oluşur.
-
-## Teknolojiler
-
-- [Rust](https://www.rust-lang.org) — Dil
-- [Clap 4](https://github.com/clap-rs/clap) — CLI argüman parser
-- [Tokio](https://tokio.rs) — Async runtime
-- [Reqwest](https://github.com/seanmonstar/reqwest) — HTTP client
-- [Crossterm](https://github.com/crossterm-rs/crossterm) — Terminal manipülasyonu
-
-## Linkler
-
-- [GitHub](https://github.com/spoakk)
-- [Discord](https://discord.gg/SBbU3rCtGe)
-- [Web Arayüzü](https://spoak.cc)
+## 🔗 İlgili Bağlantılar
+- **Web Sitesi:** [spoak.cc](https://spoak.cc)
+- **Topluluk:** [Discord Sunucumuz](https://discord.gg/SBbU3rCtGe)
+- **Backend:** [spoak-backend (Rust)](https://github.com/spoakk/backend)

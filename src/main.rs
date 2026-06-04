@@ -5,6 +5,48 @@ mod install;
 mod color;
 
 use clap::{Parser, Subcommand};
+use inquire::Text;
+use inquire::autocompletion::{Autocomplete, Replacement};
+use inquire::CustomUserError;
+
+#[derive(Clone)]
+struct CmdCompleter;
+
+impl Autocomplete for CmdCompleter {
+    fn get_suggestions(&mut self, input: &str) -> Result<Vec<String>, CustomUserError> {
+        let commands = vec![
+            "ping play.hypixel.net",
+            "ping mc.hypixel.net",
+            "player Notch",
+            "jars versions",
+            "jars paper 1.21.4",
+            "jars leaf 1.21.4",
+            "coords nether 100 100",
+            "coords overworld 10 10",
+            "structures 123456789",
+            "help",
+            "exit",
+            "quit",
+            "install",
+        ];
+        
+        let mut matches = vec![];
+        for cmd in commands {
+            if cmd.to_lowercase().contains(&input.to_lowercase()) {
+                matches.push(cmd.to_string());
+            }
+        }
+        Ok(matches)
+    }
+
+    fn get_completion(&mut self, _input: &str, highlighted_suggestion: Option<String>) -> Result<Replacement, CustomUserError> {
+        if let Some(s) = highlighted_suggestion {
+            Ok(Replacement::Some(s))
+        } else {
+            Ok(Replacement::None)
+        }
+    }
+}
 
 
 #[derive(Parser)]
@@ -136,13 +178,18 @@ async fn run_interactive() {
     let mut backend_child: Option<tokio::process::Child> = None;
 
     loop {
-        print!("{} ", color::spoak_dim("spoak>"));
-        use std::io::Write;
-        std::io::stdout().flush().unwrap();
+        let render_config = inquire::ui::RenderConfig::default()
+            .with_prompt_prefix(inquire::ui::Styled::new("spoak ❯").with_fg(inquire::ui::Color::LightMagenta));
 
-        let mut line = String::new();
-        if std::io::stdin().read_line(&mut line).is_err() { break; }
-        let line = line.trim().to_string();
+        let line = match Text::new("")
+            .with_autocomplete(CmdCompleter)
+            .with_render_config(render_config)
+            .prompt() 
+        {
+            Ok(l) => l.trim().to_string(),
+            Err(_) => break,
+        };
+
         if line.is_empty() { continue; }
         if line == "exit" || line == "quit" { break; }
 
@@ -206,13 +253,16 @@ async fn run_interactive() {
 }
 
 fn print_banner() {
-    println!("{}", color::spoak(r"
+    let logo = r"
   ███████╗██████╗  ██████╗  █████╗ ██╗  ██╗
   ██╔════╝██╔══██╗██╔═══██╗██╔══██╗██║ ██╔╝
   ███████╗██████╔╝██║   ██║███████║█████╔╝ 
   ╚════██║██╔═══╝ ██║   ██║██╔══██║██╔═██╗ 
   ███████║██║     ╚██████╔╝██║  ██║██║  ██╗
-  ╚══════╝╚═╝      ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝"));
+  ╚══════╝╚═╝      ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝";
+
+    let grad_logo = color::gradient_text(logo, (111., 81., 218.), (244., 114., 182.));
+    println!("{}", grad_logo);
     println!("  Minecraft server tools — v{}\n", color::dim(env!("CARGO_PKG_VERSION")));
 }
 
